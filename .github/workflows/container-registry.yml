@@ -28,12 +28,12 @@ jobs:
 
       - name: Log in to GitHub Container Registry
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-        run: echo "${{ secrets.ACCESS_TOKEN }}" | docker login ghcr.io -u IshitaSutariya --password-stdin
+        run: echo "${{ secrets.ACCESS_TOKEN }}" | docker login ghcr.io -u ishitasutariya --password-stdin
 
       - name: Build the image
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-        run: docker build -t ghcr.io/IshitaSutariya/ducks-service:latest .
+        run: docker build -t ghcr.io/ishitasutariya/ducks-service:latest .
 
       - name: Push the image
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-        run: docker push ghcr.io/IshitaSutariya/ducks-service:latest
+        run: docker push ghcr.io/ishitasutariya/ducks-service:latest
