@@ -1,8 +1,10 @@
 name: Docker Image CI for GHCR
 
 on:
-  pull_request:
   push:
+    branches:
+      - main
+  pull_request:
     branches:
       - main
 
