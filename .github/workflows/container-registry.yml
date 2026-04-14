@@ -1,39 +1,37 @@
 name: Docker Image CI for GHCR
 
 on:
-  push
+  pull_request:
+  push:
+    branches:
+      - main
 
 jobs:
-  build_and_publish:
+  build-test-publish:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout
-        uses: actions/checkout@v1
+        uses: actions/checkout@v4
 
-      - name: Set up JDK 1.17
-        uses: actions/setup-java@v2
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
         with:
+          distribution: temurin
           java-version: '17'
-          distribution: 'adopt'
+          cache: maven
 
-      - name: Build the package
-        run: mvn --batch-mode -DskipTests package
+      - name: Build and test
+        run: mvn -B clean test package
 
-      - name: Run the unit tests
-        run: mvn --batch-mode -Dmaven.test.failure.ignore=true test
+      - name: Log in to GitHub Container Registry
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: echo "${{ secrets.ACCESS_TOKEN }}" | docker login ghcr.io -u IshitaSutariya --password-stdin
 
-      - name: Report
-        uses: dorny/test-reporter@v1
-        if: always()
-        with:
-          name: Maven Tests
-          path: target/surefire-reports/*.xml
-          reporter: java-junit
-          fail-on-error: true
+      - name: Build the image
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: docker build -t ghcr.io/IshitaSutariya/ducks-service:latest .
 
-      - name: Build and push the image
-        run: |
-          docker login --username hbahramian --password ${{secrets.ACCESS_TOKEN}} ghcr.io
-          docker build -t ghcr.io/hbahramian/ducks-service:latest --file Dockerfile .  
-          docker push ghcr.io/hbahramian/ducks-service:latest 
-
+      - name: Push the image
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: docker push ghcr.io/IshitaSutariya/ducks-service:latest
